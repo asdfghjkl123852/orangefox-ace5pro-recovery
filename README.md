@@ -33,6 +33,22 @@ xz -d OrangeFox-Ace5Pro-中文版.img.xz
 7z x OrangeFox-Ace5Pro-中文版.img.xz
 ```
 
+## 源文件
+
+`source/twres/` 下是改过的 7 个主题文件（原始 XML），对应镜像内 `/twres/`，可直接覆盖复现本改版：
+
+```
+source/twres/languages/en.xml      中文语言包（注入默认语言槽）
+source/twres/themes/font.xml       26 处字体换成文泉驿微米黑
+source/twres/resources/images.xml  字体预览项同步
+source/twres/resources/vars.xml    lang_back / adv_open 变量
+source/twres/pages/advanced.xml    菜单入口 / 折叠 / WiFi 页 / install_back 修复
+source/twres/pages/settings.xml    语言页返回变量化、关于页署名
+source/twres/splash.xml            首屏署名
+```
+
+改法、踩过的坑、重新打包与 AVB 重算步骤都写在 `source/README.md`。
+
 ## 刷入
 
 设备为 A/B + 虚拟 A/B，`recovery_a` / `recovery_b` 各 100 MB，镜像为纯 ramdisk（`kernel_size = 0`，内核在 `boot` 分区），**不需要内核**。
