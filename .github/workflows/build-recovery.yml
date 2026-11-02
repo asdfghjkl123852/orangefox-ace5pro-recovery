@@ -1,0 +1,61 @@
+name: Build Recovery (self-hosted)
+
+# 完整编译需要在「自托管 runner」上运行：
+#   - 磁盘 >= 200GB（源码树精简后约 81GB）
+#   - 内存 >= 16GB
+# 免费 GitHub runner（14GB 磁盘 / 7GB 内存）无法编译 Android recovery。
+#
+# 部署自托管 runner 后，在 GitHub 仓库 Actions 页手动触发本 workflow 即可自动出 rec。
+# 部署方法见 README.md「自动编译」章节。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    timeout-minutes: 720
+    steps:
+      - name: Checkout project (local_manifest + scripts)
+        uses: actions/checkout@v4
+
+      - name: Sync source and build recovery
+        shell: bash
+        run: |
+          set -euxo pipefail
+          WORK="$RUNNER_WORKSPACE/orangefox-src"
+          mkdir -p "$WORK"
+          cd "$WORK"
+
+          # 首次运行才初始化 manifest，之后复用源码树（避免重复 sync）
+          if [ ! -d .repo ]; then
+            repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_16.0
+          fi
+
+          # 写入设备树 local_manifest（来自本仓库）
+          mkdir -p .repo/local_manifests
+          cp "$GITHUB_WORKSPACE/local_manifests/ace5pro.xml" .repo/local_manifests/
+
+          # 同步源码
+          repo sync -j"$(nproc)" --force-sync
+
+          # 编译
+          export FOX_BUILD_DEVICE=sm87xx
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export LC_ALL=C
+          source build/envsetup.sh
+          lunch twrp_sm87xx-eng
+          mka recoveryimage -j"$(nproc)"
+
+          # 拷贝产物
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          cp -v out/target/product/sm87xx/recovery.img        "$GITHUB_WORKSPACE/artifacts/" || true
+          cp -v out/target/product/sm87xx/OrangeFox*.img       "$GITHUB_WORKSPACE/artifacts/" || true
+          cp -v out/target/product/sm87xx/OrangeFox*.zip       "$GITHUB_WORKSPACE/artifacts/" || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrangeFox-sm87xx
+          path: artifacts/
+          retention-days: 30

@@ -1,0 +1,31 @@
+name: CI Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate build.sh syntax
+        run: bash -n build.sh
+
+      - name: Validate manifest XML syntax
+        run: |
+          python3 - <<'PY'
+          import xml.dom.minidom
+          xml.dom.minidom.parse('local_manifests/ace5pro.xml')
+          print('ace5pro.xml: OK')
+          PY
+
+      - name: Validate project files
+        run: |
+          test -s README.md
+          test -s README_EN.md
+          test -s LICENSE
+          test -x build.sh
+          echo "All project files OK"

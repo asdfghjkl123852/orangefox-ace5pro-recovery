@@ -1,5 +1,7 @@
 # OrangeFox Recovery — 一加 Ace 5 Pro（sm87xx）
 
+中文 | [English](README_EN.md)
+
 基于**橙狐 OrangeFox R12.0（Android 16 / fox_16.0）**构建的 recovery，**支持解密 data 分区**。
 
 - 设备树：[kmiit/twrp_device_oplus_sm87xx](https://github.com/kmiit/twrp_device_oplus_sm87xx)（分支 `twrp-16.0`）
@@ -100,6 +102,34 @@ out/target/product/sm87xx/recovery.img
 out/target/product/sm87xx/OrangeFox-R12.0-Unofficial-sm87xx.img
 out/target/product/sm87xx/OrangeFox-R12.0-Unofficial-sm87xx.zip
 ```
+
+---
+
+## 自动编译（GitHub Actions）
+
+本仓库提供了两个 workflow：
+
+| workflow | 运行环境 | 用途 |
+|----------|----------|------|
+| `.github/workflows/ci-checks.yml` | 免费 `ubuntu-latest` | 每次 push 校验脚本/XML/文件完整性 |
+| `.github/workflows/build-recovery.yml` | **自托管 runner** | 手动触发，完整编译出 rec |
+
+**为什么需要自托管？** 精简后的 Android 源码树也要约 81GB 磁盘，而 GitHub 免费 runner 只有 14GB 磁盘 / 7GB 内存，完全不够编译 recovery。
+
+### 部署自托管 runner
+
+在编译机（≥200GB 磁盘、≥16GB 内存）上：
+
+```bash
+# 1. 仓库 Settings -> Actions -> Runners -> New self-hosted runner，按页面提示操作，例如：
+mkdir actions-runner && cd actions-runner
+curl -o actions-runner-linux-x64.tar.gz -L https://github.com/actions/runner/releases/download/v2.XXX/actions-runner-linux-x64-2.XXX.tar.gz
+tar xzf actions-runner-linux-x64.tar.gz
+./config.sh --url https://github.com/asdfghjkl123852/orangefox-ace5pro-recovery --token <TOKEN>
+./run.sh
+```
+
+然后在仓库 **Actions** 页手动运行 **"Build Recovery (self-hosted)"**。它会自动 sync 源码（首次后复用）并编译，产物作为 artifact 下载。
 
 ---
 
