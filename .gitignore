@@ -1,0 +1,3 @@
+# 大文件：原始 img 走 Release，仓库内只放压缩包
+*.img
+*.zip
