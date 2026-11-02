@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  一加 Ace 5 Pro（OPLUS sm87xx 平台）橙狐 Recovery 设备树
+
+  配合橙狐官方 manifest 使用：
+      repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_16.0
+
+  设备树来源：https://github.com/kmiit/twrp_device_oplus_sm87xx（分支 twrp-16.0）
+  该设备树支持 OPLUS sm87xx 全系机型，并内置完整的 data 分区解密栈：
+    - KeyMint（QTI）/ Strongbox（NXP）/ eSE
+    - weaver（OPLUS AIDL）
+    - SSG / keystore2
+-->
+<manifest>
+
+    <!--
+      kmiit 设备树远程仓库。
+      国内网络较慢时，可将 fetch 换成镜像加速：
+          fetch="https://ghfast.top/https://github.com/kmiit"
+    -->
+    <remote name="kmiit" fetch="https://github.com/kmiit" />
+
+    <project path="device/oplus/sm87xx"
+             name="twrp_device_oplus_sm87xx"
+             remote="kmiit"
+             revision="twrp-16.0"
+             clone-depth="1" />
+
+</manifest>
