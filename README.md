@@ -51,7 +51,7 @@ sudo apt-get install -y git repo python3 rsync zip unzip \
 
 ```bash
 # 1. 克隆本项目
-git clone https://github.com/<你的用户名>/orangefox-ace5pro-recovery.git
+git clone https://github.com/asdfghjkl123852/orangefox-ace5pro-recovery.git
 cd orangefox-ace5pro-recovery
 
 # 2. 执行编译脚本（首次会同步全部源码，约 1~2 小时）
