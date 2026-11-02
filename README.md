@@ -33,6 +33,22 @@ xz -d OrangeFox-Ace5Pro-中文版.img.xz
 7z x OrangeFox-Ace5Pro-中文版.img.xz
 ```
 
+## 自动编译（中文化一键）
+
+编译出的 recovery 默认是英文，用 `patches/` 一键注入中文：
+
+```bash
+pip install lz4
+python3 patches/apply-zh.py out/target/product/sm87xx/recovery.img ./source
+```
+
+脚本自动完成：解包 → 注入 7 个主题文件（中文/字体/折叠菜单/KSU 入口）→ 重算 AVB digest → 输出中文版。
+
+也可以用 GitHub Actions 全自动：`.github/workflows/build-recovery-zh.yml`（自托管 runner），
+编译完成后自动调补丁，产物直接是「默认中文」的 `OrangeFox-Ace5Pro-中文版.img`。
+
+详见 `patches/README.md`。
+
 ## 源文件
 
 `source/twres/` 下是改过的 7 个主题文件（原始 XML），对应镜像内 `/twres/`，可直接覆盖复现本改版：
