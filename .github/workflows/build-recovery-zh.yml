@@ -1,0 +1,65 @@
+name: Build Recovery + 中文化补丁 (self-hosted)
+
+# 完整编译需在「自托管 runner」上运行（磁盘≥200GB，内存≥16GB）。
+# 部署自托管 runner 后，在 Actions 页手动触发即可自动出「中文版」rec。
+#
+# 与 build-recovery.yml 的区别：
+#   本 workflow 在编译完成后，额外自动应用 patches/ 下的中文化补丁，
+#   把 7 个主题文件（中文语言包 / 字体 / 折叠菜单 / KSU 入口）注入 ramdisk，
+#   并重算 AVB digest，产物就是「默认中文」的成品。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    timeout-minutes: 720
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Sync source and build recovery
+        shell: bash
+        run: |
+          set -euxo pipefail
+          WORK="$RUNNER_WORKSPACE/orangefox-src"
+          mkdir -p "$WORK"
+          cd "$WORK"
+
+          if [ ! -d .repo ]; then
+            repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_16.0
+          fi
+
+          mkdir -p .repo/local_manifests
+          cp "$GITHUB_WORKSPACE/local_manifests/ace5pro.xml" .repo/local_manifests/
+
+          repo sync -j"$(nproc)" --force-sync
+
+          export FOX_BUILD_DEVICE=sm87xx
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export LC_ALL=C
+          source build/envsetup.sh
+          lunch twrp_sm87xx-eng
+          mka recoveryimage -j"$(nproc)"
+
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          cp -v out/target/product/sm87xx/recovery.img "$GITHUB_WORKSPACE/artifacts/recovery-原始.img" || true
+
+      - name: Apply 中文化补丁
+        shell: bash
+        run: |
+          set -euxo pipefail
+          pip3 install --quiet lz4 || pip3 install --quiet lz4
+          IMG="$GITHUB_WORKSPACE/artifacts/recovery-原始.img"
+          [ -f "$IMG" ] || { echo "没有编译产物，跳过补丁"; exit 0; }
+          python3 "$GITHUB_WORKSPACE/patches/apply-zh.py" "$IMG" "$GITHUB_WORKSPACE/source" \
+            "$GITHUB_WORKSPACE/artifacts/OrangeFox-Ace5Pro-中文版.img"
+          ls -l "$GITHUB_WORKSPACE/artifacts/"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrangeFox-sm87xx-中文版
+          path: artifacts/
+          retention-days: 30
